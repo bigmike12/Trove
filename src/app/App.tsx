@@ -1,6 +1,10 @@
+import { AuthProvider } from '@/features/auth/AuthProvider'
+
 const App = () => {
   return (
-    <div>App</div>
+    <AuthProvider>
+      <div>App</div>
+    </AuthProvider>
   )
 }
 
