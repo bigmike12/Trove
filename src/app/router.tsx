@@ -3,6 +3,8 @@ import { createBrowserRouter } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 import { GuestRoute, LoginPage, RequireAuth } from '@/features/auth'
 import { RootLayout } from '@/layouts/RootLayout'
+import { DashboardLayout } from '@/layouts/DashboardLayout'
+import { DashboardPage } from '@/features/dashboard/DashboardPage'
 
 
 export const router = createBrowserRouter([
@@ -17,8 +19,8 @@ export const router = createBrowserRouter([
         element: <RequireAuth />,
         children: [
           {
-            path: ROUTES.dashboard,
-            element: <div>hello</div>,
+            element: <DashboardLayout />,
+            children: [{ path: ROUTES.dashboard, element: <DashboardPage /> }],
           },
         ],
       },
