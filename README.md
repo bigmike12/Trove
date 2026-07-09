@@ -4,8 +4,6 @@ A portfolio dashboard built for the Trove Frontend Engineer Assessment: a
 simulated login flow and a dashboard showing net worth, sector allocation,
 account summaries, holdings and transactions.
 
-> **Status:** Work in progress. Sections below are updated as features are completed.
-
 ---
 
 ## Getting started
