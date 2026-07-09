@@ -1,75 +1,206 @@
-# React + TypeScript + Vite
+# Trove — Investment Portfolio Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A portfolio dashboard built for the Trove Frontend Engineer Assessment: a
+simulated login flow and a dashboard showing net worth, sector allocation,
+account summaries, holdings and transactions.
 
-Currently, two official plugins are available:
+> **Status:** Work in progress. Sections below are updated as features are completed.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+## Getting started
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### Installation
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+yarn
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Start the development server
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-
+```bash
+yarn dev
 ```
+
+---
+
+## Available scripts
+
+| Script                 | Purpose                               |
+| ---------------------- | ------------------------------------- |
+| `yarn dev`             | Start the Vite development server     |
+| `yarn build`           | Type-check and build for production   |
+| `yarn preview`         | Preview the production build locally  |
+| `yarn lint`            | Run ESLint                            |
+| `yarn format`          | Format the project with Prettier      |
+| `yarn format:check`    | Check formatting without modifying    |
+| `yarn typecheck`       | Run the TypeScript compiler           |
+| `yarn test`            | Run the test suite with Vitest        |
+
+---
+
+## Tech stack
+
+- React 19
+- Vite
+- TypeScript (Strict Mode)
+- Tailwind CSS v4
+- React Router
+- TanStack Query
+- React Hook Form
+- Zod
+- Recharts
+- date-fns
+- lucide-react
+
+---
+
+## Architecture
+
+The project follows a feature-based structure to keep business logic, UI, and infrastructure concerns separated.
+
+```text
+src/
+├── app/          # Application shell, providers and router
+├── features/     # Feature modules (auth, dashboard, etc.)
+├── layouts/      # Shared page layouts
+├── services/     # API abstraction layer
+├── shared/       # Reusable UI components
+├── hooks/        # Shared React hooks
+├── utils/        # Business logic and utility functions
+├── constants/    # Application constants
+└── types/        # Shared TypeScript types
+```
+---
+
+Decisions based on my preference:
+
+- **Service layer as the API boundary.** Components never touch the JSON.
+  `portfolio.service.ts` returns promises through `fake-api.ts` (400–900 ms
+  latency, `structuredClone` so callers can't mutate the "database"). Swapping
+  to a real backend touches only `src/services`.
+- **Server state vs UI state.** TanStack Query caches the portfolio;
+  everything else (active tab, filters, search text, balance visibility, menu
+  open) is plain `useState` — it's temporary view state, so Redux or global
+  stores would be an overfill.
+- **Domain math is pure** `toPosition`, `computeTotals`,
+  `groupBySector`, filtering and sorting are plain functions in `utils/`,
+  covered by 22 vitest cases including every data quirk. Components mostly
+  just render.
+- **Login flow never navigates imperatively.** `RequireAuth` remembers where
+  you were headed; `GuestRoute` redirects whenever a session exists — so
+  submitting the form just sets the session and the router follows. Deep link
+  → login → back to the deep link works for free.
+- **One derived-data pass.** `DashboardPage` memoizes positions → totals →
+  sector groups once and hands plain props to presentational children. List
+  items aren't `React.memo`-ed: ten cards re-render in microseconds, and memo
+  would be speculative complexity.
+- **Design tokens enforced by the build.** Tailwind's default palette is
+  disabled (`--color-*: initial`), so only the Trove v3 tokens exist —
+  off-palette colors won't compile into the CSS.
+
+---
+
+## Data quirks
+
+The supplied dataset intentionally contains several edge cases. Rather than
+handling them throughout the UI, all decisions are centralized in
+`src/utils/portfolio.ts` (`toPosition`) so every component renders consistent
+data.
+
+### 1. NVDA has `currentPrice: 0`
+
+This is treated as a **missing market price**, not a worthless holding.
+
+Instead of valuing the holding at \$0 (which would incorrectly show a −100%
+loss), the application:
+
+- values the position at its cost basis
+- displays a **Price unavailable** badge
+- hides gain/loss since it cannot be calculated accurately
+- excludes the position from overall portfolio gain calculations
+- indicates that part of the portfolio is valued at cost
+
+---
+
+### 2. DIS has `shares: 0`
+
+This represents a **closed position**.
+
+Closed positions:
+
+- remain visible for historical context
+- appear greyed out with a **Closed** badge
+- are excluded from:
+  - portfolio value
+  - sector allocation
+  - gain calculations
+
+---
+
+### 3 & 4. Pending and Failed transactions
+
+Transactions receive status-specific styling:
+
+- ✅ Completed
+- 🟡 Pending
+- 🔴 Failed
+
+Failed transactions are additionally muted and struck through because no money
+actually moved.
+
+---
+
+### 5. Negative returns
+
+Shared formatting helpers ensure all monetary changes are displayed consistently.
+
+Examples:
+
+```text
++$245.00 (+3.2%)
+-$161.00 (-6.1%)
+```
+
+Positive values use the success palette, negative values use the loss palette,
+while zero remains neutral.
+
+---
+
+### 6. Displaying the signed-in user
+
+The sample dataset includes a hardcoded user name. Since the application
+supports a simulated login, the dashboard displays the authenticated user's
+name instead.
+
+The name is derived from the email entered during login (for example,
+`john.doe@example.com` → **John Doe**) and stored as part of the session. This
+keeps the dashboard consistent with the active user instead of always showing
+the static name from the mock dataset.
+
+---
+
+### Dataset inconsistency
+
+The provided dataset contains a discrepancy:
+
+- `summary.totalPortfolioValue` = **$48,250.75**
+- value computed from holdings = **$23,234.25**
+
+Since the assessment specifies that the dashboard should compute totals from
+the holdings, the application derives portfolio value directly from the
+holdings rather than displaying the inconsistent summary value.
+
+---
+
+## Future improvements
+
+Some improvements that would be worthwhile with additional time include:
+
+- Better unit test coverage for business logic and components
+- Integration tests for authentication and routing
+- Dark mode support
+- Virtualized rendering for large holdings lists
+- Skeleton loading states driven by Suspense
+- Real API integration by replacing the mock service layer
+- Internationalization and currency localization

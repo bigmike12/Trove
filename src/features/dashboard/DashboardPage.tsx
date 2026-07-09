@@ -5,12 +5,13 @@ import { useAuth } from '@/features/auth'
 import { ErrorState } from '@/shared/ErrorState'
 import { computeTotals, groupBySector, toPosition } from '@/utils/portfolio'
 
+import { AccountsGrid } from './components/AccountsGrid'
 import { AllocationCard } from './components/AllocationCard'
 import { DashboardSkeleton } from './components/DashboardSkeleton'
+import { HoldingsPanel } from './components/holdings/HoldingsPanel'
 import { NetWorthCard } from './components/NetWorthCard'
+import { TransactionsPanel } from './components/orders/TransactionsPanel'
 import { usePortfolio } from './hooks/usePortfolio'
-import { AccountsGrid } from './components/AccountsGrid'
-import { HoldingsSection } from './components/HoldingsSection'
 
 export function DashboardPage() {
   const { session } = useAuth()
@@ -20,6 +21,7 @@ export function DashboardPage() {
     () => (data ? data.holdings.map(toPosition) : []),
     [data],
   )
+
   const totals = useMemo(() => computeTotals(positions), [positions])
   const sectorGroups = useMemo(() => groupBySector(positions), [positions])
 
@@ -68,7 +70,10 @@ export function DashboardPage() {
 
       <AccountsGrid groups={sectorGroups} colorOf={sectorColor} />
 
-      <HoldingsSection positions={positions} />
+      <div className="grid items-start gap-5 lg:grid-cols-2">
+        <HoldingsPanel positions={positions} />
+        <TransactionsPanel transactions={data.transactions} />
+      </div>
     </div>
   )
 }
