@@ -12,7 +12,7 @@ import { NavLink } from 'react-router-dom'
 
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/features/auth'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/shared/ui/Button'
 
 interface NavItem {
   label: string
