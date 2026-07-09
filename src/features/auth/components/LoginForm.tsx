@@ -1,8 +1,8 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useForm } from 'react-hook-form'
 
-import { Button } from '@/components/ui/Button'
-import { TextField } from '@/components/ui/TextField'
+import { Button } from '@/shared/ui/Button'
+import { TextField } from '@/shared/ui/TextField'
 
 import { useAuth } from '../hooks/useAuth'
 import { loginSchema, type LoginFormValue } from '../login-schema'
