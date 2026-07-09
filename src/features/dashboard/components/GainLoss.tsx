@@ -8,6 +8,7 @@ interface GainLossProps {
   amount: number | null
   percent?: number | null
   withIcon?: boolean
+  size?: 'sm' | 'xs'
   className?: string
 }
 
@@ -15,11 +16,16 @@ export function GainLoss({
   amount,
   percent,
   withIcon = false,
+  size = 'sm',
   className,
 }: GainLossProps) {
+  const sizeClass = size === 'sm' ? 'text-sm' : 'text-xs'
+
   if (amount === null) {
     return (
-      <span className={clsx('text-sm font-medium text-ink-faint', className)}>
+      <span
+        className={clsx(sizeClass, 'font-medium text-ink-faint', className)}
+      >
         —
       </span>
     )
@@ -32,7 +38,8 @@ export function GainLoss({
   return (
     <span
       className={clsx(
-        'inline-flex items-center gap-1 text-sm font-medium',
+        'inline-flex items-center gap-1 font-medium',
+        sizeClass,
         isFlat ? 'text-ink-soft' : isLoss ? 'text-loss' : 'text-gain',
         className,
       )}
