@@ -10,6 +10,7 @@ import { DashboardSkeleton } from './components/DashboardSkeleton'
 import { NetWorthCard } from './components/NetWorthCard'
 import { usePortfolio } from './hooks/usePortfolio'
 import { AccountsGrid } from './components/AccountsGrid'
+import { HoldingsSection } from './components/HoldingsSection'
 
 export function DashboardPage() {
   const { session } = useAuth()
@@ -66,6 +67,8 @@ export function DashboardPage() {
       </div>
 
       <AccountsGrid groups={sectorGroups} colorOf={sectorColor} />
+
+      <HoldingsSection positions={positions} />
     </div>
   )
 }
