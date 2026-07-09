@@ -82,8 +82,7 @@ Decisions based on my preference:
   open) is plain `useState` — it's temporary view state, so Redux or global
   stores would be an overfill.
 - **Domain math is pure** `toPosition`, `computeTotals`,
-  `groupBySector`, filtering and sorting are plain functions in `utils/`,
-  covered by 22 vitest cases including every data quirk. Components mostly
+  `groupBySector`, filtering and sorting are plain functions in `utils/`. Components mostly
   just render.
 - **Login flow never navigates imperatively.** `RequireAuth` remembers where
   you were headed; `GuestRoute` redirects whenever a session exists — so
