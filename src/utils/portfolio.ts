@@ -1,14 +1,11 @@
 import type { Holding } from '@/types/portfolio'
 
 /**
- * A holding enriched with everything the UI needs to render it. This is the
- * single place the dataset's known quirks are decided:
+ * A holding with the extra values the UI needs.
  *
- * - currentPrice <= 0 (NVDA): the price feed is down, not a worthless stock.
- *   The position is valued at cost so net worth stays meaningful, and its
- *   gain is `null` (unknowable) rather than a misleading 0 or -100%.
- * - shares === 0 (DIS): a closed position. It contributes nothing to totals
- *   or allocation but is still listed, greyed out, for history.
+ * It also handles the dataset edge cases:
+ * - Positions with no current price are valued at cost.
+ * - Positions with zero shares are treated as closed.
  */
 export interface HoldingPosition extends Holding {
   hasKnownPrice: boolean

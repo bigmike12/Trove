@@ -2,6 +2,13 @@ export type TransactionType = 'BUY' | 'SELL'
 
 export type TransactionStatus = 'COMPLETED' | 'PENDING' | 'FAILED'
 
+export type HistoryRange = '1D' | '1W' | '1M' | 'ALL'
+
+export interface NetWorthPoint {
+  date: string
+  value: number
+}
+
 export interface PortfolioUser {
   name: string
   accountId: string
